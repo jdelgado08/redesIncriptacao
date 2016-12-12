@@ -9,8 +9,8 @@ public class client_frame extends javax.swing.JFrame
 {
     Thread IncomingReader;
     String username = "localhost";
-    //String address = "104.197.182.194";
-    String address = "192.168.1.66";
+    String address = "104.198.50.56";
+    //String address = "192.168.1.66";
     //String address = "192.168.203.179";
     ArrayList<String> users = new ArrayList();
     int port = 11999;
