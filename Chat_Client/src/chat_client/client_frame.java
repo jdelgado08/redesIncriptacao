@@ -7,10 +7,11 @@ import static jdk.nashorn.internal.objects.NativeString.trim;
 
 public class client_frame extends javax.swing.JFrame 
 {
+    Thread IncomingReader;
     String username = "localhost";
     //String address = "104.197.182.194";
-    //String address = "192.168.1.66";
-    String address = "192.168.203.179";
+    String address = "192.168.1.66";
+    //String address = "192.168.203.179";
     ArrayList<String> users = new ArrayList();
     int port = 11999;
     Boolean isConnected = false;
@@ -23,7 +24,7 @@ public class client_frame extends javax.swing.JFrame
     
     public void ListenThread() 
     {
-         Thread IncomingReader = new Thread(new IncomingReader());
+         IncomingReader = new Thread(new IncomingReader());
          IncomingReader.start();
     }
     
@@ -38,6 +39,12 @@ public class client_frame extends javax.swing.JFrame
     
     public void userRemove(String data) 
     {
+        for(int i = 0; i< jComboBoxUsers.getItemCount();i++){
+            String auxUserName = (String) jComboBoxUsers.getItemAt(i);
+            if(auxUserName.equals(data)){
+                jComboBoxUsers.removeItemAt(i);
+            }
+        }
          ta_chat.append(data + " is now offline.\n");
     }
     
@@ -61,7 +68,11 @@ public class client_frame extends javax.swing.JFrame
         try
         {
             writer.println(bye); 
-            writer.flush(); 
+            writer.flush();
+            users = new ArrayList();
+            for(int i = 0; i< jComboBoxUsers.getItemCount();i++){
+                jComboBoxUsers.removeItemAt(i);
+            }
         } catch (Exception e) 
         {
             ta_chat.append("Could not send Disconnect message.\n");
@@ -81,7 +92,6 @@ public class client_frame extends javax.swing.JFrame
         }
         isConnected = false;
         tf_username.setEditable(true);
-
     }
     
     public client_frame() 
@@ -105,37 +115,55 @@ public class client_frame extends javax.swing.JFrame
         {
             String[] data;
             String stream, done = "Done", connect = "Connect", disconnect = "Disconnect", chat = "Chat";
+            
+            if(isConnected){
+                    try 
+                    {
+                        //esta a chegar nova informacao, tem de ser tratada
+                        while ((stream = reader.readLine()) != null) 
+                        {
+                             data = stream.split(":");
 
-            try 
-            {
-                while ((stream = reader.readLine()) != null) 
-                {
-                     data = stream.split(":");
-
-                     if (data[2].equals(chat)) 
-                     {
-                        ta_chat.append(data[0] + ": " + data[1] + "\n");
-                        ta_chat.setCaretPosition(ta_chat.getDocument().getLength());
-                     } 
-                     else if (data[2].equals(connect))
-                     {
-                        ta_chat.removeAll();
-                        userAdd(data[0]);
-                        if(!trim(tf_username.getText()).equals(data[0]))
-                        jComboBoxUsers.addItem(data[0]);
-                     } 
-                     else if (data[2].equals(disconnect)) 
-                     {
-                         userRemove(data[0]);
-                     } 
-                     else if (data[2].equals(done)) 
-                     {
-                        //users.setText("");
-                        writeUsers();
-                        users.clear();
-                     }
+                             //se for so tipo chat vai ser acrescentada na consola
+                             if (data[2].equals(chat)) 
+                             {
+                                ta_chat.append(data[0] + ": " + data[1] + "\n");
+                                ta_chat.setCaretPosition(ta_chat.getDocument().getLength());
+                             } 
+                             else if (data[2].equals(connect))
+                             {
+                                 boolean aux = false;
+                                 //do tipo connected tambem vai ser mostrada na consola
+                                for(int i=0;i<jComboBoxUsers.getItemCount();i++){
+                                    if(jComboBoxUsers.getItemAt(i).equals(data[0])) aux = true;
+                                }
+                                ta_chat.removeAll();
+                                userAdd(data[0]);
+                                
+                                if(!trim(tf_username.getText()).equals(data[0]) && !aux)
+                                    jComboBoxUsers.addItem(data[0]);
+                                
+                                
+                             } 
+                             else if (data[2].equals(disconnect)) 
+                             {
+                                 //se for disconnect significa que houve um utilizador que se desligou
+                                 //vai ter de ser removido da lista
+                                 //a comboBoz vai ter de ser atualizada
+                                 userRemove(data[0]);
+                                 //nao se remove o user da lista, apenas nao se vai mostrar ao utilizador
+                                 //assim evita-se andar sempre a a alterar o array, a verificacao é feita no momento da cennecao
+                                 //no caso das brincadeira
+                             } 
+                             else if (data[2].equals(done)) 
+                             {
+                                //users.setText("");
+                                writeUsers();
+                                users.clear();
+                             }
+                        }
+                   }catch(Exception ex) { }
                 }
-           }catch(Exception ex) { }
         }
     }
 
@@ -312,7 +340,7 @@ public class client_frame extends javax.swing.JFrame
     }//GEN-LAST:event_tf_usernameActionPerformed
 
     private void b_connectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_connectActionPerformed
-        if (isConnected == false) 
+        if (isConnected == false && !tf_username.getText().equals("")) 
         {
             username = tf_username.getText();
             tf_username.setEditable(false);
@@ -344,6 +372,7 @@ public class client_frame extends javax.swing.JFrame
     private void b_disconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_disconnectActionPerformed
         sendDisconnect();
         Disconnect();
+        isConnected = false;
     }//GEN-LAST:event_b_disconnectActionPerformed
 
     private void b_anonymousActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_anonymousActionPerformed
