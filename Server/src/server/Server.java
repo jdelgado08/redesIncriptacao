@@ -12,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
@@ -19,9 +20,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.input.DataFormat;
+import javax.xml.bind.DatatypeConverter;
+import ClassServer.Cripto1;
 
 /**
  *
@@ -33,6 +37,8 @@ public class Server extends javax.swing.JFrame {
     private ArrayList<String> users;
     private int port = 11999;
     private boolean flag_enviar_users = false;
+    private int fase = 0;
+    private String keyPhrase;
     
     public class ClientHandler implements Runnable	
    {
@@ -88,6 +94,7 @@ public class Server extends javax.swing.JFrame {
                     if (data[2].equals(connect)) 
                     {
                         tellEveryone((data[0] + ":" + data[1] + ":" + chat));
+                        if(fase == 1) tellEveryone("encript:" + keyPhrase +  ":encrpt" + ":fase1");
                         userAdd(data[0]);
                         flag_enviar_users = true;
                     } 
@@ -117,6 +124,10 @@ public class Server extends javax.swing.JFrame {
              } 
 	} 
     }
+    
+    
+    
+    
 
     /**
      * Creates new form Server
@@ -125,7 +136,9 @@ public class Server extends javax.swing.JFrame {
         initComponents();
         jLabelPortNumber.setText(String.valueOf(port) + "  (Default Port)");
         jButtonStop.setEnabled(false);
+        keyPhrase = Cripto1.generateKey();
     }
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -151,6 +164,12 @@ public class Server extends javax.swing.JFrame {
         jTextAreaConsole = new javax.swing.JTextArea();
         jButtonStart = new javax.swing.JButton();
         jButtonStop = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jCheckBoxSemencri = new javax.swing.JCheckBox();
+        jCheckBoxEncri1 = new javax.swing.JCheckBox();
+        jCheckBoxEncri2 = new javax.swing.JCheckBox();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenuSAir = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -231,11 +250,12 @@ public class Server extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(900, 500));
         setName("mainFrame"); // NOI18N
-        setPreferredSize(new java.awt.Dimension(1000, 700));
+        setPreferredSize(new java.awt.Dimension(1200, 700));
         setResizable(false);
-        setSize(new java.awt.Dimension(1000, 700));
+        setSize(new java.awt.Dimension(1200, 700));
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.setPreferredSize(new java.awt.Dimension(1500, 683));
 
         jLabel1.setFont(new java.awt.Font("Felix Titling", 0, 36)); // NOI18N
         jLabel1.setText("Tcp Server");
@@ -272,29 +292,70 @@ public class Server extends javax.swing.JFrame {
             }
         });
 
+        jLabel5.setText("Fase de encripação 1");
+
+        jLabel6.setText("Sem encriptação");
+
+        jLabel7.setText("Fase de encripação 2");
+
+        jCheckBoxSemencri.setSelected(true);
+        jCheckBoxSemencri.setEnabled(false);
+        jCheckBoxSemencri.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSemencriActionPerformed(evt);
+            }
+        });
+
+        jCheckBoxEncri1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxEncri1ActionPerformed(evt);
+            }
+        });
+
+        jCheckBoxEncri2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxEncri2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(22, 22, 22)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(22, 22, 22)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addGroup(jPanel1Layout.createSequentialGroup()
-                                    .addComponent(jButtonStart, javax.swing.GroupLayout.PREFERRED_SIZE, 429, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jButtonStop, javax.swing.GroupLayout.PREFERRED_SIZE, 443, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addComponent(jScrollPaneConsole, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 948, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabelPortNumber, javax.swing.GroupLayout.PREFERRED_SIZE, 713, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabelPortNumber, javax.swing.GroupLayout.PREFERRED_SIZE, 713, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(366, 366, 366)
-                        .addComponent(jLabel1)))
-                .addContainerGap(39, Short.MAX_VALUE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jButtonStart, javax.swing.GroupLayout.PREFERRED_SIZE, 429, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jButtonStop, javax.swing.GroupLayout.PREFERRED_SIZE, 443, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jScrollPaneConsole, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 948, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(57, 57, 57)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel7)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
+                                .addComponent(jCheckBoxEncri2))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel5)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jCheckBoxEncri1))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jCheckBoxSemencri)))
+                        .addGap(68, 68, 68))))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(366, 366, 366)
+                .addComponent(jLabel1)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -309,7 +370,20 @@ public class Server extends javax.swing.JFrame {
                     .addComponent(jLabel4)
                     .addComponent(jLabelPortNumber, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPaneConsole, javax.swing.GroupLayout.PREFERRED_SIZE, 466, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPaneConsole, javax.swing.GroupLayout.PREFERRED_SIZE, 466, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jCheckBoxSemencri)
+                            .addComponent(jLabel6))
+                        .addGap(25, 25, 25)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel5)
+                            .addComponent(jCheckBoxEncri1))
+                        .addGap(23, 23, 23)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel7)
+                            .addComponent(jCheckBoxEncri2))))
                 .addContainerGap(81, Short.MAX_VALUE))
         );
 
@@ -343,7 +417,7 @@ public class Server extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 1238, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -408,6 +482,30 @@ public class Server extends javax.swing.JFrame {
         jTextAreaConsole.append(date.format(datetime) + " - Server is Off\n");
         //jTextAreaConsole.setText("");
     }//GEN-LAST:event_jButtonStopActionPerformed
+
+    private void jCheckBoxSemencriActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSemencriActionPerformed
+        // TODO add your handling code here:
+        jCheckBoxEncri1.setSelected(false);
+        jCheckBoxEncri2.setSelected(false);
+    }//GEN-LAST:event_jCheckBoxSemencriActionPerformed
+
+    private void jCheckBoxEncri1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEncri1ActionPerformed
+        // TODO add your handling code here:
+        fase = 1;
+        jCheckBoxSemencri.setEnabled(true);
+        jCheckBoxSemencri.setSelected(false);
+        jCheckBoxEncri2.setSelected(false);  
+        jTextAreaConsole.append(keyPhrase);
+        tellEveryone("encript:" + keyPhrase +  ":encrpt" + ":fase1");
+    }//GEN-LAST:event_jCheckBoxEncri1ActionPerformed
+
+    private void jCheckBoxEncri2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEncri2ActionPerformed
+        // TODO add your handling code here:
+        jCheckBoxSemencri.setEnabled(true);
+        jCheckBoxSemencri.setSelected(false);
+        jCheckBoxEncri1.setSelected(false);
+        tellEveryone("encript:");
+    }//GEN-LAST:event_jCheckBoxEncri2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -534,11 +632,17 @@ public class Server extends javax.swing.JFrame {
     private javax.swing.JButton jButtonConfOk;
     private javax.swing.JButton jButtonStart;
     private javax.swing.JButton jButtonStop;
+    private javax.swing.JCheckBox jCheckBoxEncri1;
+    private javax.swing.JCheckBox jCheckBoxEncri2;
+    private javax.swing.JCheckBox jCheckBoxSemencri;
     private javax.swing.JDialog jDialogConfigPort;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabelPortNumber;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenu jMenuConfogPort;

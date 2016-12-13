@@ -3,6 +3,7 @@ package chat_client;
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import chat_client.Criptofase1;
 import static jdk.nashorn.internal.objects.NativeString.trim;
 
 public class client_frame extends javax.swing.JFrame 
@@ -15,6 +16,8 @@ public class client_frame extends javax.swing.JFrame
     ArrayList<String> users = new ArrayList();
     int port = 11999;
     Boolean isConnected = false;
+    int faseDeEncriptacao = 0;
+    String Key;
     
     Socket sock;
     BufferedReader reader;
@@ -127,7 +130,26 @@ public class client_frame extends javax.swing.JFrame
                              //se for so tipo chat vai ser acrescentada na consola
                              if (data[2].equals(chat)) 
                              {
-                                ta_chat.append(data[0] + ": " + data[1] + "\n");
+                                 //ta_chat.append(String.valueOf(data.length));
+                                 if(data.length == 3){
+                                     ta_chat.append(data[0] + ": " + data[1] + "\n");
+                                 }else
+                                
+                                //ta_chat.append(String.valueOf(data.length));
+                                //if(!data[4].equals(null)) 
+                                {
+                                    //se o username recebido coincidir com o proprio
+                                    //significa que encontrou o destinatario
+                                    //a menssagem vai ser desencripatada
+                                    if(data[4].equals(username)){
+                                        ta_chat.append(data[0] + ": " + Criptofase1.Decrypt(Key, data[1]) + "\n");
+                                    }else{
+                                        //se nao, nao e desencriptada
+                                        ta_chat.append(data[0] + ": " + data[1] + "\n");
+                                    }
+                                }
+                                
+                                
                                 ta_chat.setCaretPosition(ta_chat.getDocument().getLength());
                              } 
                              else if (data[2].equals(connect))
@@ -138,11 +160,11 @@ public class client_frame extends javax.swing.JFrame
                                     if(jComboBoxUsers.getItemAt(i).equals(data[0])) aux = true;
                                 }
                                 ta_chat.removeAll();
-                                userAdd(data[0]);
-                                
-                                if(!trim(tf_username.getText()).equals(data[0]) && !aux)
+                                                       
+                                if(!trim(tf_username.getText()).equals(data[0]) && !aux){
                                     jComboBoxUsers.addItem(data[0]);
-                                
+                                    userAdd(data[0]);
+                                }
                                 
                              } 
                              else if (data[2].equals(disconnect)) 
@@ -151,6 +173,7 @@ public class client_frame extends javax.swing.JFrame
                                  //vai ter de ser removido da lista
                                  //a comboBoz vai ter de ser atualizada
                                  userRemove(data[0]);
+                                 
                                  //nao se remove o user da lista, apenas nao se vai mostrar ao utilizador
                                  //assim evita-se andar sempre a a alterar o array, a verificacao é feita no momento da cennecao
                                  //no caso das brincadeira
@@ -160,6 +183,15 @@ public class client_frame extends javax.swing.JFrame
                                 //users.setText("");
                                 writeUsers();
                                 users.clear();
+                             }else if(data[2].equals("encrpt")){                             
+                                 if(data[3].equals("fase1")){
+                                     Key = data[1];
+                                     jLabelPublicKey.setText(Criptofase1.toHex(Key));
+                                     faseDeEncriptacao = 1;
+                                 }
+                                 else if(data[3].equals("fase2")){
+                                     faseDeEncriptacao = 2;
+                                 }
                              }
                         }
                    }catch(Exception ex) { }
@@ -275,12 +307,12 @@ public class client_frame extends javax.swing.JFrame
                         .addComponent(jLabelPrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGap(289, 289, 289))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(lb_username, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lb_username, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tf_username, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
+                        .addGap(31, 31, 31)
                         .addComponent(b_connect)
-                        .addGap(18, 18, 18)
+                        .addGap(37, 37, 37)
                         .addComponent(b_disconnect)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -366,6 +398,8 @@ public class client_frame extends javax.swing.JFrame
         } else if (isConnected == true) 
         {
             ta_chat.append("You are already connected. \n");
+        }else{
+            ta_chat.append("Insert UserName, please ... \n");
         }
     }//GEN-LAST:event_b_connectActionPerformed
 
@@ -420,8 +454,19 @@ public class client_frame extends javax.swing.JFrame
             tf_chat.requestFocus();
         } else {
             try {
-               writer.println(username + ":" + tf_chat.getText() + ":" + "Chat");
-               writer.flush(); // flushes the buffer
+                //escrever o codigo de endriptacao aqui:         *************************************************************
+               String encriptada = "";
+               if(faseDeEncriptacao == 0){
+                   writer.println(username + ":" + tf_chat.getText() + ":" + "Chat");
+                   writer.flush();
+               }
+               else if(faseDeEncriptacao == 1){
+                   encriptada = Criptofase1.encrypt(Key, tf_chat.getText());
+                   writer.println(username + ":" + encriptada + ":" + "Chat" + ":" + "receiver" + ":" + (String) jComboBoxUsers.getSelectedItem());
+                   writer.flush();
+               }
+                
+                
             } catch (Exception ex) {
                 ta_chat.append("Message was not sent. \n");
             }
