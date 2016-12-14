@@ -4,20 +4,24 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import chat_client.Criptofase1;
+import javax.xml.bind.DatatypeConverter;
 import static jdk.nashorn.internal.objects.NativeString.trim;
 
 public class client_frame extends javax.swing.JFrame 
 {
     Thread IncomingReader;
     String username = "localhost";
-    String address = "104.198.50.56";
-    //String address = "192.168.1.66";
+    //String address = "104.198.50.56";
+    String address = "192.168.1.66";
+    //String address = "127.0.0.1";
     //String address = "192.168.203.179";
     ArrayList<String> users = new ArrayList();
     int port = 11999;
     Boolean isConnected = false;
     int faseDeEncriptacao = 0;
     String Key;
+    String key2 = "";
+    RC4 rc4;
     
     Socket sock;
     BufferedReader reader;
@@ -141,11 +145,23 @@ public class client_frame extends javax.swing.JFrame
                                     //se o username recebido coincidir com o proprio
                                     //significa que encontrou o destinatario
                                     //a menssagem vai ser desencripatada
-                                    if(data[4].equals(username)){
+                                    if(data[4].equals(username) && faseDeEncriptacao == 1){
                                         ta_chat.append(data[0] + ": " + Criptofase1.Decrypt(Key, data[1]) + "\n");
+                                    }else if(data[4].equals(username) && faseDeEncriptacao == 2){
+                                        //fase 2 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                                            ta_chat.append(data[0] + ": " + data[1] + "\n");             
                                     }else{
                                         //se nao, nao e desencriptada
-                                        ta_chat.append(data[0] + ": " + data[1] + "\n");
+                                        if(faseDeEncriptacao == 1){
+                                            ta_chat.append(data[0] + ": " + data[1] + "\n");
+                                        }
+                                        else if(faseDeEncriptacao == 2){
+                                            RC4 rc4 = new RC4(key2.getBytes());
+                                            byte[] buf = data[1].getBytes();
+                                            
+                                            byte[] backtext = rc4.encrypt(buf);
+                                            ta_chat.append(data[0] + ":" + Criptofase1.toHex(backtext.toString()) + "\n");
+                                        }
                                     }
                                 }
                                 
@@ -191,6 +207,8 @@ public class client_frame extends javax.swing.JFrame
                                  }
                                  else if(data[3].equals("fase2")){
                                      faseDeEncriptacao = 2;
+                                     key2 = data[1];
+                                     jLabelPublicKey.setText(data[1]);
                                  }
                              }
                         }
@@ -464,6 +482,20 @@ public class client_frame extends javax.swing.JFrame
                    encriptada = Criptofase1.encrypt(Key, tf_chat.getText());
                    writer.println(username + ":" + encriptada + ":" + "Chat" + ":" + "receiver" + ":" + (String) jComboBoxUsers.getSelectedItem());
                    writer.flush();
+               }else if(faseDeEncriptacao == 2){
+                    
+                    writer.println(username + ":" + tf_chat.getText() + ":" + "Chat" + ":" + "receiver" + ":" + (String) jComboBoxUsers.getSelectedItem());
+                    writer.flush();
+                   /*rc4 = new RC4(key2.getBytes());
+                   byte[] aux = rc4.encrypt(tf_chat.getText().getBytes());
+                   encriptada = new String(aux);
+                   rc4 = new RC4(key2.getBytes());
+                   byte[] aux1 = rc4.decrypt(encriptada.getBytes());
+                   ta_chat.append("\nchave enc: " + (key2));
+                   ta_chat.append("\nMenssagem enc: " + aux);
+                   ta_chat.append("\nMenssagem decrpt: " + aux1);
+                   writer.println(username + ":" + encriptada + ":" + "Chat" + ":" + "receiver" + ":" + (String) jComboBoxUsers.getSelectedItem());
+                   writer.flush();*/
                }
                 
                 

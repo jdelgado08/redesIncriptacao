@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import javafx.scene.input.DataFormat;
 import javax.xml.bind.DatatypeConverter;
 import ClassServer.Cripto1;
+import ClassServer.RC4;
 
 /**
  *
@@ -39,6 +40,7 @@ public class Server extends javax.swing.JFrame {
     private boolean flag_enviar_users = false;
     private int fase = 0;
     private String keyPhrase;
+    private byte[] keyPhrase2;
     
     public class ClientHandler implements Runnable	
    {
@@ -95,6 +97,7 @@ public class Server extends javax.swing.JFrame {
                     {
                         tellEveryone((data[0] + ":" + data[1] + ":" + chat));
                         if(fase == 1) tellEveryone("encript:" + keyPhrase +  ":encrpt" + ":fase1");
+                        else if(fase == 2) tellEveryone("encript:" + keyPhrase +  ":encrpt" + ":fase2");
                         userAdd(data[0]);
                         flag_enviar_users = true;
                     } 
@@ -108,6 +111,7 @@ public class Server extends javax.swing.JFrame {
                     else if (data[2].equals(chat)) 
                     {
                         tellEveryone(message);
+                        //System.out.println(data[1]);
                         flag_enviar_users = true;
                     } 
                     else 
@@ -377,13 +381,13 @@ public class Server extends javax.swing.JFrame {
                             .addComponent(jCheckBoxSemencri)
                             .addComponent(jLabel6))
                         .addGap(25, 25, 25)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel5)
-                            .addComponent(jCheckBoxEncri1))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jCheckBoxEncri1)
+                            .addComponent(jLabel5))
                         .addGap(23, 23, 23)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel7)
-                            .addComponent(jCheckBoxEncri2))))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jCheckBoxEncri2)
+                            .addComponent(jLabel7))))
                 .addContainerGap(81, Short.MAX_VALUE))
         );
 
@@ -501,10 +505,13 @@ public class Server extends javax.swing.JFrame {
 
     private void jCheckBoxEncri2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEncri2ActionPerformed
         // TODO add your handling code here:
+        fase = 2;
         jCheckBoxSemencri.setEnabled(true);
         jCheckBoxSemencri.setSelected(false);
         jCheckBoxEncri1.setSelected(false);
-        tellEveryone("encript:");
+        String keyPhrase2 = "8k186hkjoo765qaq3454";
+        jTextAreaConsole.append("Chave de Encriptacao: " + keyPhrase2);
+        tellEveryone("encript:" + keyPhrase2 +  ":encrpt" + ":fase2");
     }//GEN-LAST:event_jCheckBoxEncri2ActionPerformed
 
     /**
@@ -610,7 +617,8 @@ public class Server extends javax.swing.JFrame {
             {
                 PrintWriter writer = (PrintWriter) it.next();
 		writer.println(message);
-		jTextAreaConsole.append("Sending: " + message + "\n");
+		if(fase == 2) jTextAreaConsole.append("Sending: " + "encrypt data" + "\n");
+                else jTextAreaConsole.append("Sending: " + message + "\n");
                 writer.flush();
                 jTextAreaConsole.setCaretPosition(jTextAreaConsole.getDocument().getLength());
 
