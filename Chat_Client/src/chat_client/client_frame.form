@@ -209,12 +209,17 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel3">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Private Key:"/>
+            <Property name="text" type="java.lang.String" value="Erros:"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabelPublicKey">
         </Component>
         <Component class="javax.swing.JLabel" name="jLabelPrivateKey">
+          <Properties>
+            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+              <Color blue="0" green="0" red="ff" type="rgb"/>
+            </Property>
+          </Properties>
         </Component>
         <Component class="javax.swing.JComboBox" name="jComboBoxUsers">
           <Properties>

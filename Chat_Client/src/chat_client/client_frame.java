@@ -13,7 +13,7 @@ public class client_frame extends javax.swing.JFrame
     String username = "localhost";
     String address = "104.198.50.56";
     //String address = "192.168.1.66";
-    //String address = "127.0.0.1";
+    //String address = "192.168.0.101";
     //String address = "192.168.203.179";
     ArrayList<String> users = new ArrayList();
     int port = 11999;
@@ -145,9 +145,9 @@ public class client_frame extends javax.swing.JFrame
                                     //se o username recebido coincidir com o proprio
                                     //significa que encontrou o destinatario
                                     //a menssagem vai ser desencripatada
-                                    if(data[4].equals(username) && faseDeEncriptacao == 1){
+                                    if((data[4].equals(username) || tf_username.getText().equals(data[0])) && faseDeEncriptacao == 1){
                                         ta_chat.append(data[0] + ": " + Criptofase1.Decrypt(Key, data[1]) + "\n");
-                                    }else if(data[4].equals(username) && faseDeEncriptacao == 2){
+                                    }else if((data[4].equals(username) || tf_username.getText().equals(data[0])) && faseDeEncriptacao == 2){
                                         //fase 2 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                             ta_chat.append(data[0] + ": " + data[1] + "\n");             
                                     }else{
@@ -297,7 +297,9 @@ public class client_frame extends javax.swing.JFrame
 
         jLabel2.setText("Public Key: ");
 
-        jLabel3.setText("Private Key:");
+        jLabel3.setText("Erros:");
+
+        jLabelPrivateKey.setForeground(new java.awt.Color(255, 0, 0));
 
         jComboBoxUsers.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -466,6 +468,7 @@ public class client_frame extends javax.swing.JFrame
     }//GEN-LAST:event_b_anonymousActionPerformed
 
     private void b_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_sendActionPerformed
+        jLabelPrivateKey.setText("");
         String nothing = "";
         if ((tf_chat.getText()).equals(nothing)) {
             tf_chat.setText("");
@@ -479,9 +482,14 @@ public class client_frame extends javax.swing.JFrame
                    writer.flush();
                }
                else if(faseDeEncriptacao == 1){
-                   encriptada = Criptofase1.encrypt(Key, tf_chat.getText());
-                   writer.println(username + ":" + encriptada + ":" + "Chat" + ":" + "receiver" + ":" + (String) jComboBoxUsers.getSelectedItem());
-                   writer.flush();
+                   if(tf_chat.getText().length() < 20){
+                       jLabelPrivateKey.setText("Para enviar uma mensagem insira uma frase maior.");
+                   }else{
+                       
+                        encriptada = Criptofase1.encrypt(Key, tf_chat.getText());
+                        writer.println(username + ":" + encriptada + ":" + "Chat" + ":" + "receiver" + ":" + (String) jComboBoxUsers.getSelectedItem());
+                        writer.flush();
+                   }
                }else if(faseDeEncriptacao == 2){
                     
                     writer.println(username + ":" + tf_chat.getText() + ":" + "Chat" + ":" + "receiver" + ":" + (String) jComboBoxUsers.getSelectedItem());
