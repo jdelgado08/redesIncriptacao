@@ -4,6 +4,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import chat_client.Criptofase1;
+import java.math.BigInteger;
 import javax.xml.bind.DatatypeConverter;
 import static jdk.nashorn.internal.objects.NativeString.trim;
 
@@ -160,7 +161,7 @@ public class client_frame extends javax.swing.JFrame
                                             byte[] buf = data[1].getBytes();
                                             
                                             byte[] backtext = rc4.encrypt(buf);
-                                            ta_chat.append(data[0] + ":" + Criptofase1.toHex(backtext.toString()) + "\n");
+                                            ta_chat.append(data[0] + ":" + String.format("%040x", new BigInteger(1, backtext)) + "\n");
                                         }
                                     }
                                 }
